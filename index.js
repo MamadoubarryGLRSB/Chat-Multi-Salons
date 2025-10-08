@@ -31,6 +31,18 @@ function getRoomUsers(room) {
   return Array.from(rooms.get(room));
 }
 
+// Fonction pour obtenir la liste de tous les salons
+function getAllRooms() {
+  const roomList = [];
+  rooms.forEach((users, roomName) => {
+    roomList.push({
+      name: roomName,
+      userCount: users.size
+    });
+  });
+  return roomList;
+}
+
 // Fonction pour ajouter un utilisateur à un salon
 function addUserToRoom(room, socketId, username, avatar) {
   if (!rooms.has(room)) {
@@ -79,6 +91,9 @@ function addMessageToHistory(room, message) {
 io.on('connection', (socket) => {
   console.log('Un utilisateur est connecté');
 
+  // Envoyer la liste des salons au client qui se connecte
+  socket.emit('rooms list', getAllRooms());
+
   // Rejoindre un salon
   socket.on('join room', (data) => {
     const { username, room } = data;
@@ -102,6 +117,9 @@ io.on('connection', (socket) => {
 
     // Envoyer la liste mise à jour des utilisateurs à tous
     io.to(room).emit('room users', getRoomUsers(room));
+
+    // Envoyer la liste mise à jour des salons à TOUS les clients
+    io.emit('rooms list', getAllRooms());
 
     console.log(`${username} a rejoint le salon ${room}`);
   });
@@ -141,6 +159,9 @@ io.on('connection', (socket) => {
       message: `${username} a rejoint le salon ${newRoom}.`
     });
     io.to(newRoom).emit('room users', getRoomUsers(newRoom));
+
+    // Mettre à jour la liste des salons pour tous
+    io.emit('rooms list', getAllRooms());
 
     console.log(`${username} a changé de salon vers ${newRoom}`);
   });
@@ -234,6 +255,9 @@ io.on('connection', (socket) => {
       
       // Mettre à jour la liste des utilisateurs
       io.to(room).emit('room users', getRoomUsers(room));
+      
+      // Mettre à jour la liste des salons pour tous
+      io.emit('rooms list', getAllRooms());
       
       console.log(`${username} a quitté le salon ${room}`);
     }
