@@ -58,9 +58,10 @@
             width: 220px;
             background-color: #2c2f33;
             border-right: 2px solid #23272a;
-            display: flex;
+            display: flex !important;
             flex-direction: column;
             flex-shrink: 0;
+            min-height: 100%;
         }
 
         #rooms-sidebar h3 {
@@ -597,10 +598,12 @@
         <!-- Section de chat -->
         <div id="chat-section" class="hidden">
             <!-- Sidebar - Liste des salons -->
-            <div id="rooms-sidebar">
-                <h3># Salons</h3>
-                <ul id="rooms-list"></ul>
-                <button id="add-room-btn">+ Nouveau</button>
+            <div id="rooms-sidebar" style="background-color: #2c2f33 !important; display: flex !important; flex-direction: column !important; width: 220px !important;">
+                <h3 style="background: #23272a; color: white; padding: 15px; margin: 0;"># SALONS</h3>
+                <ul id="rooms-list" style="flex: 1; padding: 10px; margin: 0; list-style: none; overflow-y: auto;">
+                    <li style="color: #8e9297; padding: 20px; text-align: center;">Chargement...</li>
+                </ul>
+                <button id="add-room-btn" style="margin: 10px; padding: 10px; background: #5865f2; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 1.2em;">+ Nouveau</button>
             </div>
 
             <!-- Sidebar - Liste des utilisateurs -->
@@ -664,6 +667,7 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
+        console.log('🚀 Version du chat: 2.0 avec sidebar des salons');
         const socket = io();
 
         // Éléments DOM
@@ -922,13 +926,7 @@
             messages.appendChild(item);
             messages.scrollTop = messages.scrollHeight;
             
-            let toastType = 'info';
-            if (data.message.includes('a rejoint')) {
-                toastType = 'join';
-            } else if (data.message.includes('a quitté')) {
-                toastType = 'leave';
-            }
-            showToast(data.message, toastType);
+            // Notifications toast désactivées (trop perturbantes)
         });
 
         // Recevoir la liste des utilisateurs
@@ -952,6 +950,7 @@
 
         // Recevoir la liste des salons
         socket.on('rooms list', (rooms) => {
+            console.log('📋 Liste des salons reçue:', rooms);
             roomsList.innerHTML = '';
             
             if (rooms.length === 0) {
@@ -960,7 +959,7 @@
                 emptyMessage.style.textAlign = 'center';
                 emptyMessage.style.padding = '20px';
                 emptyMessage.style.cursor = 'default';
-                emptyMessage.textContent = 'Aucun salon actif';
+                emptyMessage.textContent = 'Aucun salon';
                 roomsList.appendChild(emptyMessage);
                 return;
             }
@@ -973,7 +972,10 @@
                     li.classList.add('active');
                 }
                 
-                li.onclick = () => changeRoom(room.name);
+                li.onclick = () => {
+                    console.log('🔄 Changement vers salon:', room.name);
+                    changeRoom(room.name);
+                };
                 
                 li.innerHTML = `
                     <span class="room-name"># ${room.name}</span>
@@ -982,6 +984,8 @@
                 
                 roomsList.appendChild(li);
             });
+            
+            console.log('✅ Sidebar salons mise à jour avec', rooms.length, 'salons');
         });
 
         // Indicateur de saisie
@@ -1005,7 +1009,7 @@
         socket.on('room changed', (data) => {
             currentRoom = data.room;
             currentRoomDisplay.textContent = currentRoom;
-            showToast(`Vous avez rejoint le salon ${data.room}`, 'join');
+            // Notification toast désactivée
         });
 
         // Recevoir un message privé

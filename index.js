@@ -65,10 +65,8 @@ function removeUserFromRoom(socketId) {
         roomUsers.delete(user);
       }
     });
-    if (roomUsers.size === 0) {
-      rooms.delete(room);
-      messageHistory.delete(room);
-    }
+    // NE PAS supprimer le salon même s'il est vide
+    // On garde l'historique des messages
   }
   userSockets.delete(socketId);
   return { username, room, avatar };
