@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Multi-Salons</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        #chat-container { 
+            max-width: 800px; 
+            margin: 20px auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+        #messages { 
+            list-style-type: none; 
+            margin: 0; 
+            padding: 0; 
+            max-height: 400px; 
+            overflow-y: auto; 
+            border: 2px solid #667eea; 
+            padding: 15px; 
+            margin-bottom: 15px; 
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        #messages li { 
+            padding: 10px 12px; 
+            border-bottom: 1px solid #eee; 
+            margin-bottom: 5px;
+            border-radius: 4px;
+            background-color: white;
+        }
+        #messages li:last-child { border-bottom: none; }
+        #messages li strong { color: #667eea; }
+        #form-join, #form-chat { 
+            display: flex; 
+            margin-bottom: 15px; 
+            gap: 10px;
+        }
+        #form-join input, #form-chat input { 
+            flex-grow: 1; 
+            padding: 12px; 
+            border: 2px solid #ddd; 
+            border-radius: 6px; 
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        #form-join input:focus, #form-chat input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        #form-join button, #form-chat button { 
+            padding: 12px 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        #form-join button:hover, #form-chat button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        #form-join button:active, #form-chat button:active {
+            transform: translateY(0);
+        }
+        .hidden { display: none; }
+        #current-room-display {
+            color: #667eea;
+            font-weight: bold;
+        }
+        .room-info {
+            background-color: #f0f4ff;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            text-align: center;
+            border: 2px solid #667eea;
+        }
+        .notification {
+            font-style: italic;
+            color: #666;
+            background-color: #fff3cd !important;
+            border-left: 4px solid #ffc107 !important;
+        }
+
+        /* Notifications Toast */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            min-width: 300px;
+            padding: 15px 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease-out;
+            border-left: 5px solid #667eea;
+        }
+
+        .toast.join {
+            border-left-color: #28a745;
+        }
+
+        .toast.leave {
+            border-left-color: #dc3545;
+        }
+
+        .toast-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .toast-content {
+            flex-grow: 1;
+        }
+
+        .toast-title {
+            font-weight: bold;
+            margin-bottom: 4px;
+            color: #333;
+        }
+
+        .toast-message {
+            font-size: 14px;
+            color: #666;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .toast.removing {
+            animation: slideOut 0.3s ease-in forwards;
+        }
+    </style>
+</head>
+<body>
+    <!-- Conteneur pour les notifications toast -->
+    <div id="toast-container"></div>
+
+    <div id="chat-container">
+        <h1>💬 Chat Multi-Salons</h1>
+
+        <div id="join-section">
+            <form id="form-join">
+                <input id="username-input" autocomplete="off" placeholder="Votre pseudo" required />
+                <input id="room-input" autocomplete="off" placeholder="Nom du salon (ex: général, dev)" required />
+                <button type="submit">Rejoindre le salon</button>
+            </form>
+        </div>
+
+        <div id="chat-section" class="hidden">
+            <div class="room-info">
+                <p>Vous êtes dans le salon : <strong id="current-room-display"></strong></p>
+            </div>
+            <ul id="messages"></ul>
+            <form id="form-chat">
+                <input id="message-input" autocomplete="off" placeholder="Votre message..." />
+                <button type="submit">Envoyer</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        const joinSection = document.getElementById('join-section');
+        const chatSection = document.getElementById('chat-section');
+        const formJoin = document.getElementById('form-join');
+        const usernameInput = document.getElementById('username-input');
+        const roomInput = document.getElementById('room-input');
+        const currentRoomDisplay = document.getElementById('current-room-display');
+
+        const formChat = document.getElementById('form-chat');
+        const messageInput = document.getElementById('message-input');
+        const messages = document.getElementById('messages');
+        const toastContainer = document.getElementById('toast-container');
+
+        let currentUsername = '';
+        let currentRoom = '';
+
+        // Fonction pour afficher une notification toast
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            let icon = '';
+            let title = 'Notification';
+            
+            if (message.includes('a rejoint')) {
+                icon = '👋';
+                title = 'Nouveau membre';
+            } else if (message.includes('a quitté')) {
+                icon = '👋';
+                title = 'Membre parti';
+            }
+            
+            toast.innerHTML = `
+                <div class="toast-icon">${icon}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            
+            // Supprimer la notification après 4 secondes
+            setTimeout(() => {
+                toast.classList.add('removing');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 4000);
+        }
+
+        // Étape 1 : Gérer la soumission du formulaire de connexion
+        formJoin.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (usernameInput.value && roomInput.value) {
+                currentUsername = usernameInput.value;
+                currentRoom = roomInput.value;
+                currentRoomDisplay.textContent = currentRoom;
+
+                // Émettre un événement 'join room' vers le serveur
+                socket.emit('join room', { 
+                    username: currentUsername, 
+                    room: currentRoom 
+                });
+
+                joinSection.classList.add('hidden');
+                chatSection.classList.remove('hidden');
+            }
+        });
+
+        // Étape 2 : Gérer la soumission du formulaire de chat
+        formChat.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (messageInput.value) {
+                // Émettre un événement 'chat message' vers le serveur
+                socket.emit('chat message', {
+                    username: currentUsername,
+                    room: currentRoom,
+                    message: messageInput.value
+                });
+                messageInput.value = '';
+            }
+        });
+
+        // Étape 3 : Écouter les messages entrants du serveur
+        socket.on('chat message', (data) => {
+            const item = document.createElement('li');
+            item.innerHTML = `<strong>${data.username}</strong> (${data.room}) : ${data.message}`;
+            messages.appendChild(item);
+            messages.scrollTop = messages.scrollHeight; // Scroll automatique
+        });
+
+        // Étape 4 : Écouter les notifications de connexion/déconnexion dans le salon
+        socket.on('room message', (data) => {
+            // Ajouter le message dans le chat
+            const item = document.createElement('li');
+            item.classList.add('notification');
+            item.textContent = data.message;
+            messages.appendChild(item);
+            messages.scrollTop = messages.scrollHeight;
+            
+            // Afficher une notification toast visuelle
+            let toastType = 'info';
+            if (data.message.includes('a rejoint')) {
+                toastType = 'join';
+            } else if (data.message.includes('a quitté')) {
+                toastType = 'leave';
+            }
+            showToast(data.message, toastType);
+        });
+
+        socket.on('connect', () => {
+            console.log('Connecté au serveur Socket.IO');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Déconnecté du serveur Socket.IO');
+        });
+    </script>
+</body>
+</html>
+
