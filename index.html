@@ -5,53 +5,252 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Multi-Salons</title>
     <style>
+        * { box-sizing: border-box; }
+        
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             margin: 0; 
-            padding: 20px; 
+            padding: 0; 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
         }
+
         #chat-container { 
-            max-width: 800px; 
+            max-width: 1200px; 
             margin: 20px auto; 
             background: white; 
-            padding: 30px; 
             border-radius: 12px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex;
+            height: calc(100vh - 40px);
+            overflow: hidden;
         }
+
         h1 {
             color: #333;
             text-align: center;
-            margin-bottom: 30px;
-            font-size: 2em;
+            margin: 0;
+            padding: 20px;
+            font-size: 1.8em;
+            border-bottom: 2px solid #f0f0f0;
         }
+
+        /* Section de connexion */
+        #join-section {
+            padding: 40px;
+            max-width: 500px;
+            margin: auto;
+        }
+
+        #join-section h1 {
+            border: none;
+        }
+
+        /* Layout principal */
+        #chat-section {
+            display: flex;
+            flex: 1;
+            height: 100%;
+        }
+
+        /* Sidebar gauche - Liste des utilisateurs */
+        #sidebar {
+            width: 250px;
+            background-color: #f8f9fa;
+            border-right: 2px solid #e9ecef;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #sidebar h3 {
+            padding: 15px;
+            margin: 0;
+            background-color: #667eea;
+            color: white;
+            font-size: 1em;
+        }
+
+        #room-controls {
+            padding: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        #change-room-btn {
+            width: 100%;
+            padding: 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #change-room-btn:hover {
+            background: #218838;
+        }
+
+        #users-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        #users-list li {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        #users-list li:hover {
+            background-color: #e9ecef;
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .user-name {
+            flex: 1;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .user-status {
+            width: 8px;
+            height: 8px;
+            background-color: #28a745;
+            border-radius: 50%;
+        }
+
+        /* Zone de chat principale */
+        #main-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .room-info {
+            background-color: #f0f4ff;
+            padding: 15px 20px;
+            border-bottom: 2px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #current-room-display {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
         #messages { 
             list-style-type: none; 
             margin: 0; 
-            padding: 0; 
-            max-height: 400px; 
+            padding: 20px;
+            flex: 1;
             overflow-y: auto; 
-            border: 2px solid #667eea; 
-            padding: 15px; 
-            margin-bottom: 15px; 
-            border-radius: 8px;
             background-color: #f9f9f9;
         }
+
         #messages li { 
-            padding: 10px 12px; 
-            border-bottom: 1px solid #eee; 
-            margin-bottom: 5px;
-            border-radius: 4px;
+            padding: 12px 15px; 
+            margin-bottom: 10px;
+            border-radius: 8px;
             background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
         }
-        #messages li:last-child { border-bottom: none; }
-        #messages li strong { color: #667eea; }
+
+        #messages li.own-message {
+            background-color: #e3f2fd;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .message-username {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .message-time {
+            font-size: 0.85em;
+            color: #999;
+        }
+
+        .message-text {
+            color: #333;
+            word-wrap: break-word;
+        }
+
+        .notification {
+            font-style: italic;
+            color: #666;
+            background-color: #fff3cd !important;
+            border-left: 4px solid #ffc107;
+            justify-content: center;
+            text-align: center;
+        }
+
+        #typing-indicator {
+            padding: 10px 20px;
+            font-style: italic;
+            color: #666;
+            min-height: 30px;
+            background-color: #f9f9f9;
+        }
+
+        /* Formulaire de chat */
+        #chat-form-container {
+            padding: 20px;
+            background-color: white;
+            border-top: 2px solid #f0f0f0;
+        }
+
         #form-join, #form-chat { 
             display: flex; 
-            margin-bottom: 15px; 
             gap: 10px;
         }
+
         #form-join input, #form-chat input { 
             flex-grow: 1; 
             padding: 12px; 
@@ -60,10 +259,12 @@
             font-size: 14px;
             transition: border-color 0.3s;
         }
+
         #form-join input:focus, #form-chat input:focus {
             outline: none;
             border-color: #667eea;
         }
+
         #form-join button, #form-chat button { 
             padding: 12px 20px; 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -74,32 +275,26 @@
             font-weight: bold;
             transition: transform 0.2s, box-shadow 0.2s;
         }
+
         #form-join button:hover, #form-chat button:hover { 
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
-        #form-join button:active, #form-chat button:active {
-            transform: translateY(0);
-        }
-        .hidden { display: none; }
-        #current-room-display {
-            color: #667eea;
-            font-weight: bold;
-        }
-        .room-info {
-            background-color: #f0f4ff;
+
+        .emoji-btn {
+            background: #f0f0f0;
             padding: 12px;
+            border: none;
             border-radius: 6px;
-            margin-bottom: 15px;
-            text-align: center;
-            border: 2px solid #667eea;
+            cursor: pointer;
+            font-size: 1.2em;
         }
-        .notification {
-            font-style: italic;
-            color: #666;
-            background-color: #fff3cd !important;
-            border-left: 4px solid #ffc107 !important;
+
+        .emoji-btn:hover {
+            background: #e0e0e0;
         }
+
+        .hidden { display: none !important; }
 
         /* Notifications Toast */
         #toast-container {
@@ -125,58 +320,164 @@
             border-left: 5px solid #667eea;
         }
 
-        .toast.join {
-            border-left-color: #28a745;
-        }
+        .toast.join { border-left-color: #28a745; }
+        .toast.leave { border-left-color: #dc3545; }
+        .toast.private { border-left-color: #ff6b6b; }
 
-        .toast.leave {
-            border-left-color: #dc3545;
-        }
-
-        .toast-icon {
-            font-size: 24px;
-            flex-shrink: 0;
-        }
-
-        .toast-content {
-            flex-grow: 1;
-        }
-
-        .toast-title {
-            font-weight: bold;
-            margin-bottom: 4px;
-            color: #333;
-        }
-
-        .toast-message {
-            font-size: 14px;
-            color: #666;
-        }
+        .toast-icon { font-size: 24px; flex-shrink: 0; }
+        .toast-content { flex-grow: 1; }
+        .toast-title { font-weight: bold; margin-bottom: 4px; color: #333; }
+        .toast-message { font-size: 14px; color: #666; }
 
         @keyframes slideIn {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
 
         @keyframes slideOut {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(400px);
-                opacity: 0;
-            }
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(400px); opacity: 0; }
         }
 
-        .toast.removing {
-            animation: slideOut 0.3s ease-in forwards;
+        .toast.removing { animation: slideOut 0.3s ease-in forwards; }
+
+        /* Modal pour changer de salon */
+        #modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        #modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        #modal-content h2 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-cancel {
+            background: #6c757d !important;
+        }
+
+        /* Emoji Picker */
+        .emoji-picker {
+            position: absolute;
+            bottom: 70px;
+            right: 20px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .emoji-picker span {
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .emoji-picker span:hover {
+            background: #f0f0f0;
+        }
+
+        /* Messages privés */
+        #private-chat {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            max-height: 500px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        #private-chat-header {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #close-private-chat {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+
+        #private-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            max-height: 300px;
+        }
+
+        .private-message {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 8px;
+        }
+
+        .private-message.sent {
+            background: #e3f2fd;
+            text-align: right;
+        }
+
+        #private-form {
+            padding: 15px;
+            border-top: 1px solid #ddd;
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            #sidebar {
+                width: 200px;
+            }
+            
+            #chat-container {
+                margin: 0;
+                height: 100vh;
+                border-radius: 0;
+            }
         }
     </style>
 </head>
@@ -185,9 +486,9 @@
     <div id="toast-container"></div>
 
     <div id="chat-container">
-        <h1>💬 Chat Multi-Salons</h1>
-
+        <!-- Section de connexion -->
         <div id="join-section">
+            <h1>💬 Chat Multi-Salons</h1>
             <form id="form-join">
                 <input id="username-input" autocomplete="off" placeholder="Votre pseudo" required />
                 <input id="room-input" autocomplete="off" placeholder="Nom du salon (ex: général, dev)" required />
@@ -195,36 +496,125 @@
             </form>
         </div>
 
+        <!-- Section de chat -->
         <div id="chat-section" class="hidden">
-            <div class="room-info">
-                <p>Vous êtes dans le salon : <strong id="current-room-display"></strong></p>
+            <!-- Sidebar - Liste des utilisateurs -->
+            <div id="sidebar">
+                <h3>👥 Utilisateurs</h3>
+                <div id="room-controls">
+                    <button id="change-room-btn">Changer de salon</button>
+                </div>
+                <ul id="users-list"></ul>
             </div>
-            <ul id="messages"></ul>
-            <form id="form-chat">
-                <input id="message-input" autocomplete="off" placeholder="Votre message..." />
-                <button type="submit">Envoyer</button>
+
+            <!-- Zone de chat principale -->
+            <div id="main-chat">
+                <div class="room-info">
+                    <div>
+                        Salon : <span id="current-room-display"></span>
+                    </div>
+                </div>
+
+                <ul id="messages"></ul>
+                
+                <div id="typing-indicator"></div>
+
+                <div id="chat-form-container">
+                    <form id="form-chat">
+                        <button type="button" class="emoji-btn" id="emoji-btn">😀</button>
+                        <input id="message-input" autocomplete="off" placeholder="Votre message..." />
+                        <button type="submit">Envoyer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour changer de salon -->
+    <div id="modal-overlay" class="hidden">
+        <div id="modal-content">
+            <h2>Changer de salon</h2>
+            <form id="change-room-form">
+                <input id="new-room-input" autocomplete="off" placeholder="Nouveau salon" required />
+                <div class="modal-buttons">
+                    <button type="submit">Rejoindre</button>
+                    <button type="button" class="btn-cancel" id="cancel-change">Annuler</button>
+                </div>
             </form>
         </div>
+    </div>
+
+    <!-- Emoji Picker -->
+    <div id="emoji-picker" class="emoji-picker hidden"></div>
+
+    <!-- Chat privé -->
+    <div id="private-chat" class="hidden">
+        <div id="private-chat-header">
+            <span id="private-chat-user">Chat privé</span>
+            <button id="close-private-chat">×</button>
+        </div>
+        <div id="private-messages"></div>
+        <form id="private-form">
+            <input id="private-input" autocomplete="off" placeholder="Message privé..." />
+            <button type="submit">📤</button>
+        </form>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
 
+        // Éléments DOM
         const joinSection = document.getElementById('join-section');
         const chatSection = document.getElementById('chat-section');
         const formJoin = document.getElementById('form-join');
         const usernameInput = document.getElementById('username-input');
         const roomInput = document.getElementById('room-input');
         const currentRoomDisplay = document.getElementById('current-room-display');
-
         const formChat = document.getElementById('form-chat');
         const messageInput = document.getElementById('message-input');
         const messages = document.getElementById('messages');
         const toastContainer = document.getElementById('toast-container');
+        const usersList = document.getElementById('users-list');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const changeRoomBtn = document.getElementById('change-room-btn');
+        const modalOverlay = document.getElementById('modal-overlay');
+        const changeRoomForm = document.getElementById('change-room-form');
+        const newRoomInput = document.getElementById('new-room-input');
+        const cancelChange = document.getElementById('cancel-change');
+        const emojiBtn = document.getElementById('emoji-btn');
+        const emojiPicker = document.getElementById('emoji-picker');
+        const privateChat = document.getElementById('private-chat');
+        const privateChatUser = document.getElementById('private-chat-user');
+        const closePrivateChat = document.getElementById('close-private-chat');
+        const privateMessages = document.getElementById('private-messages');
+        const privateForm = document.getElementById('private-form');
+        const privateInput = document.getElementById('private-input');
 
         let currentUsername = '';
         let currentRoom = '';
+        let currentAvatar = null;
+        let typingTimeout = null;
+        let currentPrivateUser = null;
+
+        const emojis = ['😀', '😂', '😍', '🥰', '😎', '🤔', '👍', '👎', '❤️', '🎉', '🔥', '✨', '👏', '🙌', '💪', '🎈'];
+
+        // Initialiser l'emoji picker
+        emojis.forEach(emoji => {
+            const span = document.createElement('span');
+            span.textContent = emoji;
+            span.onclick = () => {
+                messageInput.value += emoji;
+                emojiPicker.classList.add('hidden');
+                messageInput.focus();
+            };
+            emojiPicker.appendChild(span);
+        });
+
+        emojiBtn.onclick = (e) => {
+            e.preventDefault();
+            emojiPicker.classList.toggle('hidden');
+        };
 
         // Fonction pour afficher une notification toast
         function showToast(message, type = 'info') {
@@ -240,6 +630,9 @@
             } else if (message.includes('a quitté')) {
                 icon = '👋';
                 title = 'Membre parti';
+            } else if (type === 'private') {
+                icon = '💬';
+                title = 'Message privé';
             }
             
             toast.innerHTML = `
@@ -252,17 +645,19 @@
             
             toastContainer.appendChild(toast);
             
-            
-            // Supprimer la notification après 4 secondes
             setTimeout(() => {
                 toast.classList.add('removing');
-                setTimeout(() => {
-                    toast.remove();
-                }, 300);
+                setTimeout(() => toast.remove(), 300);
             }, 4000);
         }
 
-        // Étape 1 : Gérer la soumission du formulaire de connexion
+        // Fonction pour formater le timestamp
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Rejoindre un salon
         formJoin.addEventListener('submit', (e) => {
             e.preventDefault();
             if (usernameInput.value && roomInput.value) {
@@ -270,7 +665,6 @@
                 currentRoom = roomInput.value;
                 currentRoomDisplay.textContent = currentRoom;
 
-                // Émettre un événement 'join room' vers le serveur
                 socket.emit('join room', { 
                     username: currentUsername, 
                     room: currentRoom 
@@ -281,38 +675,143 @@
             }
         });
 
-        // Étape 2 : Gérer la soumission du formulaire de chat
+        // Envoyer un message
         formChat.addEventListener('submit', (e) => {
             e.preventDefault();
             if (messageInput.value) {
-                // Émettre un événement 'chat message' vers le serveur
                 socket.emit('chat message', {
                     username: currentUsername,
                     room: currentRoom,
                     message: messageInput.value
                 });
                 messageInput.value = '';
+                socket.emit('typing', { room: currentRoom, username: currentUsername, isTyping: false });
             }
         });
 
-        // Étape 3 : Écouter les messages entrants du serveur
-        socket.on('chat message', (data) => {
-            const item = document.createElement('li');
-            item.innerHTML = `<strong>${data.username}</strong> (${data.room}) : ${data.message}`;
-            messages.appendChild(item);
-            messages.scrollTop = messages.scrollHeight; // Scroll automatique
+        // Indicateur de saisie
+        messageInput.addEventListener('input', () => {
+            socket.emit('typing', { room: currentRoom, username: currentUsername, isTyping: true });
+            
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                socket.emit('typing', { room: currentRoom, username: currentUsername, isTyping: false });
+            }, 1000);
         });
 
-        // Étape 4 : Écouter les notifications de connexion/déconnexion dans le salon
+        // Changer de salon
+        changeRoomBtn.addEventListener('click', () => {
+            modalOverlay.classList.remove('hidden');
+            newRoomInput.focus();
+        });
+
+        cancelChange.addEventListener('click', () => {
+            modalOverlay.classList.add('hidden');
+            newRoomInput.value = '';
+        });
+
+        changeRoomForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (newRoomInput.value) {
+                const newRoom = newRoomInput.value;
+                socket.emit('change room', {
+                    username: currentUsername,
+                    room: newRoom
+                });
+                modalOverlay.classList.add('hidden');
+                newRoomInput.value = '';
+                messages.innerHTML = '';
+            }
+        });
+
+        // Ouvrir chat privé
+        function openPrivateChat(username) {
+            if (username === currentUsername) return;
+            
+            currentPrivateUser = username;
+            privateChatUser.textContent = `Chat avec ${username}`;
+            privateChat.classList.remove('hidden');
+            privateInput.focus();
+        }
+
+        closePrivateChat.addEventListener('click', () => {
+            privateChat.classList.add('hidden');
+            currentPrivateUser = null;
+        });
+
+        // Envoyer un message privé
+        privateForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (privateInput.value && currentPrivateUser) {
+                socket.emit('private message', {
+                    from: currentUsername,
+                    to: currentPrivateUser,
+                    message: privateInput.value
+                });
+                
+                // Afficher dans l'interface
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'private-message sent';
+                msgDiv.innerHTML = `<strong>Vous:</strong> ${privateInput.value}`;
+                privateMessages.appendChild(msgDiv);
+                privateMessages.scrollTop = privateMessages.scrollHeight;
+                
+                privateInput.value = '';
+            }
+        });
+
+        // Recevoir avatar assigné
+        socket.on('avatar assigned', (avatar) => {
+            currentAvatar = avatar;
+        });
+
+        // Recevoir l'historique des messages
+        socket.on('message history', (history) => {
+            messages.innerHTML = '';
+            history.forEach(msg => {
+                addMessageToChat(msg);
+            });
+        });
+
+        // Recevoir un message
+        socket.on('chat message', (data) => {
+            addMessageToChat(data);
+        });
+
+        // Fonction pour ajouter un message au chat
+        function addMessageToChat(data) {
+            const item = document.createElement('li');
+            if (data.username === currentUsername) {
+                item.classList.add('own-message');
+            }
+            
+            const avatar = data.avatar || { color: '#667eea', initial: data.username.charAt(0).toUpperCase() };
+            
+            item.innerHTML = `
+                <div class="message-avatar" style="background-color: ${avatar.color}">
+                    ${avatar.initial}
+                </div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <span class="message-username">${data.username}</span>
+                        <span class="message-time">${data.timestamp ? formatTime(data.timestamp) : ''}</span>
+                    </div>
+                    <div class="message-text">${data.message}</div>
+                </div>
+            `;
+            
+            messages.appendChild(item);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        // Recevoir notification de salon
         socket.on('room message', (data) => {
-            // Ajouter le message dans le chat
             const item = document.createElement('li');
             item.classList.add('notification');
             item.textContent = data.message;
             messages.appendChild(item);
             messages.scrollTop = messages.scrollHeight;
             
-            // Afficher une notification toast visuelle
             let toastType = 'info';
             if (data.message.includes('a rejoint')) {
                 toastType = 'join';
@@ -322,6 +821,64 @@
             showToast(data.message, toastType);
         });
 
+        // Recevoir la liste des utilisateurs
+        socket.on('room users', (users) => {
+            usersList.innerHTML = '';
+            users.forEach(user => {
+                const li = document.createElement('li');
+                li.onclick = () => openPrivateChat(user.username);
+                
+                li.innerHTML = `
+                    <div class="user-avatar" style="background-color: ${user.avatar.color}">
+                        ${user.avatar.initial}
+                    </div>
+                    <span class="user-name">${user.username}</span>
+                    <div class="user-status"></div>
+                `;
+                
+                usersList.appendChild(li);
+            });
+        });
+
+        // Indicateur de saisie
+        let typingUsers = new Set();
+        socket.on('user typing', (data) => {
+            if (data.isTyping) {
+                typingUsers.add(data.username);
+            } else {
+                typingUsers.delete(data.username);
+            }
+            
+            if (typingUsers.size > 0) {
+                const users = Array.from(typingUsers).join(', ');
+                typingIndicator.textContent = `${users} est en train d'écrire...`;
+            } else {
+                typingIndicator.textContent = '';
+            }
+        });
+
+        // Changement de salon confirmé
+        socket.on('room changed', (data) => {
+            currentRoom = data.room;
+            currentRoomDisplay.textContent = currentRoom;
+            showToast(`Vous avez rejoint le salon ${data.room}`, 'join');
+        });
+
+        // Recevoir un message privé
+        socket.on('private message', (data) => {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'private-message';
+            msgDiv.innerHTML = `<strong>${data.from}:</strong> ${data.message}`;
+            privateMessages.appendChild(msgDiv);
+            privateMessages.scrollTop = privateMessages.scrollHeight;
+            
+            showToast(`Message privé de ${data.from}: ${data.message}`, 'private');
+            
+            if (currentPrivateUser !== data.from) {
+                openPrivateChat(data.from);
+            }
+        });
+
         socket.on('connect', () => {
             console.log('Connecté au serveur Socket.IO');
         });
@@ -329,7 +886,13 @@
         socket.on('disconnect', () => {
             console.log('Déconnecté du serveur Socket.IO');
         });
+
+        // Fermer emoji picker en cliquant ailleurs
+        document.addEventListener('click', (e) => {
+            if (!emojiBtn.contains(e.target) && !emojiPicker.contains(e.target)) {
+                emojiPicker.classList.add('hidden');
+            }
+        });
     </script>
 </body>
 </html>
-
